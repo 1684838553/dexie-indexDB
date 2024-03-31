@@ -16,12 +16,12 @@
       margin: auto;
       float: left;
       width: 400px;
-      height: 600px;
+      height: 500px;
       border: 1px solid #333;
     }
     .form {
       width: calc(100% - 410px);
-      height: 600px;
+      height: 500px;
       float: right;
       border: 1px solid burlywood;
     }
@@ -35,7 +35,11 @@
       <button id="addData">新增</button>
       <button id="update">修改</button>
       <button id="delete">删除</button>
+      <button id="bulk-add">批量新增</button>
+      <button id="bulk-update">批量修改</button>
+      <button id="bulk-delete">批量删除</button>
       <button id="read">查询</button>
+      <button id="clear">清空</button>
     </div>
     <div class="div1">
       <div class="count"></div>
@@ -67,29 +71,54 @@
 
         readAll();
 
-        $("#addData").click(function (e) {
-          e.preventDefault();
-          const name = $("#name").val();
-          const age = $("#age").val();
-          const email = $("#email").val();
-          add({ name, age, email });
-          readAll();
-        });
-
-        $("#update").click(function () {
-          updateList();
-        });
-
-        $("#delete").click(function () {
-          remove();
-        });
-
-        $("#read").click(function () {
-          read();
-        });
+        $("#addData").click(() => addData());
+        $("#update").click(() => updateList());
+        $("#delete").click(() => remove());
+        $("#read").click(() => read());
+        $("#clear").click(() => clear());
+        $("#bulk-add").click(() => bulkAdd());
+        $("#bulk-update").click(() => bulkPut());
+        $("#bulk-delete").click(() => bulkDelete());
 
         async function getCount() {
           return await request.person.count();
+        }
+
+        // 批量增加 items是数组
+        async function bulkAdd() {
+          const name = $("#name").val();
+          const age = $("#age").val();
+          const email = $("#email").val();
+          const item = { name, age, email };
+          await request.person.bulkAdd([item, item]);
+          readAll();
+        }
+
+        async function bulkPut() {
+          const id = $("#id").val() || "";
+          const items = id.split(",").map((id) => {
+            return {
+              id: Number(id),
+              name: `drunk-${id}`,
+              age: 18,
+              email: "1111",
+            };
+          });
+          await request.person.bulkPut(items);
+          readAll();
+        }
+
+        async function bulkDelete() {
+          const id = $("#id").val() || "";
+          const ids = id.split(",").map((id) => Number(id));
+          await request.person.bulkDelete(ids);
+          readAll();
+        }
+
+        // 清空表中所有数据
+        async function clear() {
+          await request.person.clear();
+          readAll();
         }
 
         //查询表中数据
@@ -131,6 +160,14 @@
           const age = $("#age").val();
           const email = $("#email").val();
           update({ id: Number(id), name, age, email });
+          readAll();
+        }
+
+        function addData() {
+          const name = $("#name").val();
+          const age = $("#age").val();
+          const email = $("#email").val();
+          add({ name, age, email });
           readAll();
         }
       });
